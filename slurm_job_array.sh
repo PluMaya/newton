@@ -27,7 +27,7 @@ STARTS="$REST"
 OUTDIR=output
 
 # Run your executable
-./MultivaluedHeuristicSearch \
+./build/MultivaluedHeuristicSearch \
   --map resources/$MAP \
   --goal $GOAL \
   --algorithm $ALG \
