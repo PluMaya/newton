@@ -4,10 +4,13 @@
 
 #include "solvers/shortest_path_heuristic_computer.h"
 
+#include <fstream>
+
 #include "data_structures/node.h"
 
 #include <iostream>
 #include <queue>
+#include <sstream>
 
 struct PairComparator {
     bool operator()(const std::pair<float, size_t>& lhs,
@@ -98,6 +101,15 @@ Heuristic ShortestPathHeuristicComputer::compute_ideal_point_heuristic(
         heuristic_values_for_objectives[j] =
             compute_single_cost(source, adjacency_matrix, j);
     }
+    std::stringstream ss;
+    ss << source << "_iph.txt";
+    std::ofstream PlotOutput(ss.str());
+
+    for (int i = 0; i < adjacency_matrix.size() + 1; i++) {
+        PlotOutput << i << '\t' << heuristic_values_for_objectives[0][i] << "\t" << heuristic_values_for_objectives[1][i] << std::endl;
+    }
+
+    PlotOutput.close();
 
     return [heuristic_values_for_objectives](size_t index) -> std::vector<float> {
         std::vector<float> result;

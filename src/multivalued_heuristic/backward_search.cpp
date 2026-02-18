@@ -183,7 +183,7 @@ BackwardSearch::operator()(const size_t& source, const size_t& target,
 
     std::ofstream PlotOutput("bs.txt");
 
-    for (int i = 1; i < adj_matrix.size() + 1; i++) {
+    for (int i = 0; i < adj_matrix.size() + 1; i++) {
         for (const auto& solution : mvh_results[i]) {
             PlotOutput << i << "\t" << solution[0] << "\t" << solution[1] << std::endl;
         }

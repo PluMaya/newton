@@ -12,28 +12,34 @@ class ExperimentUtils {
 public:
     static void run_boa_star(const AdjacencyMatrix& adjecency_matrix,
                              const size_t& source, const size_t& target,
-                             const Heuristic& heuristic, const clock_t heuristic_runtime);
+                             const Heuristic& heuristic, clock_t heuristic_runtime,
+                             const std::string& logging_file);
 
     static void run_apex(const AdjacencyMatrix& adjecency_matrix,
                          const size_t& source, const size_t& target,
-                         const EPS& eps, const Heuristic& heuristic, const long heuristic_duration);
+                         const EPS& eps, const Heuristic& heuristic, long heuristic_duration,
+                         const std::string& logging_file);
 
     static void run_backward_search(const AdjacencyMatrix& adjecency_matrix,
                                     const size_t& source, const size_t& target,
                                     const EPS& eps,
                                     const Heuristic& source_to_target,
-                                    const Heuristic& target_to_source, bool global_stop_condition);
+                                    const Heuristic& target_to_source, bool global_stop_condition,
+                                    const std::string& logging_file);
 
     static void run_forward_search(const AdjacencyMatrix& adjecency_matrix,
                                    const size_t& source, const size_t& target,
                                    const EPS& eps,
-                                   const MultiValuedHeuristic& mvh, const float backward_search_runtime,
-                                   const float source_heuristic_runtime, const float
-                                   target_heuristic_runtime);
+                                   const MultiValuedHeuristic& mvh, float backward_search_runtime,
+                                   float source_heuristic_runtime, float
+                                   target_heuristic_runtime,
+                                   const std::string& logging_file);
 
     static void single_run(AdjacencyMatrix& adjecency_matrix, size_t source,
                            size_t target, const std::string& algorithm, const EPS& eps, bool global_stop_condition,
-                           std::vector<int> multi_sources);
+                           std::vector<int> multi_sources, const Heuristic& svh_heuristic = nullptr,
+                           const MultiValuedHeuristic& mvh = {},
+                           const std::string& logging_file = "");
 };
 
 #endif // EXPERIMENT_UTILS_H

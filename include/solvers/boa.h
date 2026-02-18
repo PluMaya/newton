@@ -15,7 +15,11 @@ public:
 
   void operator()(const size_t &source, const size_t &target,
                           const Heuristic &heuristic, SolutionSet &solutions,
-                          unsigned int time_limit) override;
+                          unsigned int time_limit,
+                          const std::string& logging_file);
+
+  void operator()(const size_t& source, const size_t& target, const Heuristic& heuristic, SolutionSet& solutions,
+      unsigned time_limit) override {};
 };
 
 #endif // BOA_H

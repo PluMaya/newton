@@ -1,0 +1,4 @@
+TRY BOA 0 0 1 1_iph.txt 1_iph.txt 7 6 5 4 3
+TRY BOA 0 0 5 5_iph.txt 5_iph.txt 2 5 3
+TRY FS 0.1 0.1 1 1_100_100_closure_mvh.txt 1_100_100_closure_mvh.txt 7 6 5 4 3
+TRY FS 0.1 0.1 5 5_100_100_closure_mvh.txt 5_100_100_closure_mvh.txt 2 5 3

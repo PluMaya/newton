@@ -10,7 +10,7 @@ NAMOAdr::NAMOAdr(const AdjacencyMatrix& adj_matrix)
 
 bool is_dominated_dr(const NodePtr& node, const NodePtr& other_node) {
     // returns true if node is weakly dominated by other_node
-    for (int i = 1; i < node->f.size(); i++) {
+    for (int i = 0; i < node->f.size(); i++) {
         if (node->f[i] < other_node->f[i]) {  // it is enough to have one entry that is lower than the other node
             return false;
         }

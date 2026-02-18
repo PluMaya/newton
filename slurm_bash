@@ -1,0 +1,17 @@
+#!/bin/bash
+#SBATCH --cpus-per-task=1         # number of cores (treats)
+#SBATCH --mem=4G
+#SBATCH --nodelist=newton3,newton4,galileo1 # Request run only on nodes newton3/newton4/galileo1
+#SBATCH --mail-user=wo@cs.technion.ac.il
+#SBATCH --mail-type=ALL           # Valid values are NONE, BEGIN, END, FAIL, REQUEUE, ALL
+#SBATCH --job-name=multivalued_heuristic_search # Job name
+#SBATCH -o ./out_job%j.txt        # stdout goes to out_job.txt
+#SBATCH -e ./err_job%j.txt        # stderr goes to err_job.txt
+module purge # clean active modules list
+
+cd $SLURM_SUBMIT_DIR
+
+echo "Running on node: $(hostname)"
+echo "Job ID: $SLURM_JOB_ID"
+
+./run_experiments.sh

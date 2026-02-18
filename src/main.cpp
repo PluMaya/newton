@@ -5,6 +5,9 @@
 
 #include <boost/program_options.hpp>
 
+#include "parsers/multi_valued_heuristic_parser.h"
+#include "parsers/single_valued_heuristic_parser.h"
+
 using namespace std;
 
 const std::string output_path = "../output/";
@@ -37,11 +40,16 @@ int main(int argc, char** argv) {
         "global_stop_condition, gsc", boost::program_options::value<bool>()->default_value(true),
         "global stop condition for backward search")("multi_source, ms",
                                                      boost::program_options::value<vector<int>>()->multitoken()->default_value(vector<int>{}, ""),
-                                                     "sources");
+                                                     "sources")(
+        "svh,h", boost::program_options::value<std::string>()->default_value(""),
+        "directory for single valued heuristic file")(
+        "mvh,h", boost::program_options::value<std::string>()->default_value(""),
+        "directory for multi valued heuristic file");
+
     boost::program_options::variables_map vm;
     auto options = parse_command_line(argc, argv, options_description);
-    boost::program_options::store(options, vm);
-    boost::program_options::notify(vm);
+    store(options, vm);
+    notify(vm);
 
     if (!vm["query"].as<std::string>().empty()) {
         if (vm["start"].as<int>() != -1 || vm["goal"].as<int>() != -1) {
@@ -56,8 +64,20 @@ int main(int argc, char** argv) {
         return -1;
     }
 
+    std::string logging_file = vm["logging_file"].as<std::string>();
+
     auto parser = Parser(vm["map"].as<std::string>());
     auto adjecency_matrix = parser.default_graph();
+
+    Heuristic heuristic = nullptr;
+    if (!vm["svh"].as<std::string>().empty()) {
+        heuristic = SVHParser::parse_heuristic(vm["svh"].as<std::string>());
+    }
+
+    MultiValuedHeuristic mvh = {};
+    if (!vm["mvh"].as<std::string>().empty()) {
+        mvh = MVHParser::parse_heuristic(vm["mvh"].as<std::string>());
+    }
 
     size_t source = vm["start"].as<int>();
     size_t target = vm["goal"].as<int>();
@@ -67,7 +87,7 @@ int main(int argc, char** argv) {
     bool global_stop_condition = vm["global_stop_condition"].as<bool>();
     std::vector<int> multi_sources = vm["multi_source"].as<std::vector<int>>();
     ExperimentUtils::single_run(adjecency_matrix, source, target, algorithm,
-                                {e1, e2}, global_stop_condition, multi_sources);
+                                {e1, e2}, global_stop_condition, multi_sources, heuristic, mvh, logging_file);
 
     return 0;
 }
