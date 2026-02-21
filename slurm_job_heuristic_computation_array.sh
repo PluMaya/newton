@@ -20,7 +20,7 @@ export LD_LIBRARY_PATH=$HOME/boost_install/lib:$LD_LIBRARY_PATH
 
 
 # Split line into variables
-read -r MAP GOAL ALG <<< "$LINE"
+read -r MAP ALG GOAL <<< "$LINE"
 STARTS="$REST"
 
 # Create unique output folder
@@ -31,4 +31,4 @@ OUTDIR=output
   --map resources/$MAP \
   --algorithm $ALG \
   --goal $GOAL \
-  > "${OUTDIR}/output_${RUN}_${MAP}_${GOAL}_${ALG}.txt" 2>&1
+  > "${OUTDIR}/output_${MAP}_${GOAL}_${ALG}.txt" 2>&1
