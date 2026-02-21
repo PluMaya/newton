@@ -1,1 +1,4 @@
-NYC Closure 130128 0.1 0.1 130128_0.100_0.100_post_process_mvh.txt
+NYC Closure 130128 0.05 0.5 130128_0.100_0.100_post_process_mvh.txt
+NYC Closure 130128 0.01 0.01 130128_0.100_0.100_post_process_mvh.txt
+NYC Closure 130128 0.005 0.005 130128_0.100_0.100_post_process_mvh.txt
+NYC Closure 130128 0.001 0.001 130128_0.100_0.100_post_process_mvh.txt
