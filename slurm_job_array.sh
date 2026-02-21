@@ -4,8 +4,8 @@
 #SBATCH --error=logs/%x_%A_%a.err
 #SBATCH --time=02:00:00
 #SBATCH --mem=4G
-#SBATCH --nodelist=newton3,newton4,galileo1 # Request run only on nodes newton3/newton4/galileo1
-#SBATCH --array=1-2 # TODO check this every time!
+#SBATCH --nodelist=protagoras # Request run only on nodes newton3/newton4/galileo1
+#SBATCH --array=1 # TODO check this every time!
 #SBATCH --mail-user=wo@cs.technion.ac.il
 #SBATCH --mail-type=ALL           # Valid values are NONE, BEGIN, END, FAIL, REQUEUE, ALL
 #SBATCH --cpus-per-task=1         # number of cores (treats)
