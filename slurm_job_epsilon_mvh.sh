@@ -19,7 +19,7 @@ export LD_LIBRARY_PATH=$HOME/boost_install/lib:$LD_LIBRARY_PATH
 
 
 # Split line into variables
-read -r MAP ALG GOAL E1 E2 MVH << "$LINE"
+read -r MAP ALG GOAL E1 E2 MVH <<< "$LINE"
 STARTS="$REST"
 
 # Create unique output folder
