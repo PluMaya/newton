@@ -4,7 +4,10 @@
 
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <multivalued_heuristic/backward_search.h>
+
+#include <boost/algorithm/string.hpp>
 
 #include <utility>
 
@@ -29,9 +32,6 @@ void BackwardSearch::insert(ApexPathPairPtr& ap, MapQueue& queue) {
 }
 
 bool BackwardSearch::global_dominance_check(const ApexPathPairPtr& ap) const {
-    if (global_stop_condition == false) {
-        return false;
-    }
     if (last_solution == nullptr) {
         return false;
     }
@@ -61,9 +61,7 @@ bool BackwardSearch::is_child_locally_dominated(const ApexPathPairPtr& parent, c
 
 bool BackwardSearch::is_child_globally_dominated(const ApexPathPairPtr& parent, const Edge& edge,
                                                  const std::vector<float>& h) {
-    if (global_stop_condition == false) {
-        return false;
-    }
+
     if (last_solution == nullptr) {
         return false;
     }
@@ -103,10 +101,6 @@ BackwardSearch::make_list_of_values(const ApexSolutionSet& apex_solution_set,
             };
             result.push_back(solution_value);
         }
-        if (global_stop_condition == true) {
-            result.at(0).at(0) = heuristic_value.at(0);
-            result.at(result.size() - 1).at(1) = heuristic_value.at(1);
-        }
     }
     return result;
 }
@@ -114,10 +108,8 @@ BackwardSearch::make_list_of_values(const ApexSolutionSet& apex_solution_set,
 MultiValuedHeuristic
 BackwardSearch::operator()(const size_t& source, const size_t& target,
                            const Heuristic& heuristic_to_target,
-                           const Heuristic& heuristic_to_source,
-                           bool global_stop_condition) {
+                           const Heuristic& heuristic_to_source) {
     start_time = std::clock();
-    this->global_stop_condition = global_stop_condition;
 
     BackwardSearchSolutionSet frontiers;
 
@@ -153,11 +145,6 @@ BackwardSearch::operator()(const size_t& source, const size_t& target,
             }
         }
 
-        if (global_stop_condition == true and ap->id == target) {
-            last_solution = move(ap);
-            continue;
-        }
-
         const std::vector<Edge>& outgoing_edges = adj_matrix[ap->id];
         for (const auto& outgoing_edge : outgoing_edges) {
             if (is_child_locally_dominated(ap, outgoing_edge)) {
@@ -180,8 +167,18 @@ BackwardSearch::operator()(const size_t& source, const size_t& target,
         mvh_results[i] = make_list_of_values(frontiers[i], heuristic_to_source(i));
     }
 
+    runtime = static_cast<float>(std::clock() - start_time);
 
-    std::ofstream PlotOutput("bs.txt");
+    std::string e1string = std::to_string(eps[0]);
+    std::string e2string = std::to_string(eps[1]);
+    std::vector<std::string> dceomp_temp;
+    e1string = split(dceomp_temp, e1string, boost::is_any_of("."))[1].substr(0, 3);
+    e2string = split(dceomp_temp, e2string, boost::is_any_of("."))[1].substr(0, 3);
+
+    std::stringstream ss;
+    ss << target << "_" << e1string << "_" << e2string << "_bs_mvh.txt";
+
+    std::ofstream PlotOutput(ss.str());
 
     for (int i = 0; i < adj_matrix.size() + 1; i++) {
         for (const auto& solution : mvh_results[i]) {
@@ -189,10 +186,9 @@ BackwardSearch::operator()(const size_t& source, const size_t& target,
         }
     }
 
+    std::cout << "finised writing results to file " << ss.str() << std::endl;
+
     PlotOutput.close();
-
-
-    runtime = static_cast<float>(std::clock() - start_time);
 
     return mvh_results;
 }

@@ -20,7 +20,6 @@ MultiValuedHeuristic MVHParser::parse_heuristic(const std::string& heuristic_pat
 
     MultiValuedHeuristic mvh;
     std::string heuristic_line;
-
     while (std::getline(heuristic_infile, heuristic_line)) {
 
         if (heuristic_line.empty())

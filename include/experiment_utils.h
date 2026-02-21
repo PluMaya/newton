@@ -24,19 +24,20 @@ public:
                                     const size_t& source, const size_t& target,
                                     const EPS& eps,
                                     const Heuristic& source_to_target,
-                                    const Heuristic& target_to_source, bool global_stop_condition,
+                                    const Heuristic& target_to_source,
                                     const std::string& logging_file);
+
+    static void run_boa_backward_search(const AdjacencyMatrix& adjecency_matrix,
+        const size_t& target);
 
     static void run_forward_search(const AdjacencyMatrix& adjecency_matrix,
                                    const size_t& source, const size_t& target,
                                    const EPS& eps,
-                                   const MultiValuedHeuristic& mvh, float backward_search_runtime,
-                                   float source_heuristic_runtime, float
-                                   target_heuristic_runtime,
+                                   const MultiValuedHeuristic& mvh,
                                    const std::string& logging_file);
 
     static void single_run(AdjacencyMatrix& adjecency_matrix, size_t source,
-                           size_t target, const std::string& algorithm, const EPS& eps, bool global_stop_condition,
+                           size_t target, const std::string& algorithm, const EPS& eps,
                            std::vector<int> multi_sources, const Heuristic& svh_heuristic = nullptr,
                            const MultiValuedHeuristic& mvh = {},
                            const std::string& logging_file = "");

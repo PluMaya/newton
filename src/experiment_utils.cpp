@@ -13,7 +13,9 @@
 #include <fstream>
 #include <iostream>
 
+#include "multivalued_heuristic/boa_backward_search.h"
 #include "multivalued_heuristic/closure.h"
+#include "multivalued_heuristic/post_process.h"
 
 
 void ExperimentUtils::run_boa_star(const AdjacencyMatrix& adjecency_matrix,
@@ -45,11 +47,11 @@ void ExperimentUtils::run_apex(const AdjacencyMatrix& adjecency_matrix,
 void ExperimentUtils::run_backward_search(
     const AdjacencyMatrix& adjecency_matrix, const size_t& source,
     const size_t& target, const EPS& eps, const Heuristic& source_to_target,
-    const Heuristic& target_to_source, bool global_stop_condition,
+    const Heuristic& target_to_source,
     const std::string& logging_file) {
     auto backward_search = BackwardSearch(adjecency_matrix, eps);
     MultiValuedHeuristic mvh =
-        backward_search(source, target, source_to_target, target_to_source, global_stop_condition);
+        backward_search(source, target, source_to_target, target_to_source);
     std::cout << "BS"
         << "\t" << source << "\t" << target << "\t" << mvh[target].size()
         << "\t" << backward_search.num_expansion << "\t"
@@ -57,10 +59,20 @@ void ExperimentUtils::run_backward_search(
         << std::endl;
 }
 
+void ExperimentUtils::run_boa_backward_search(const AdjacencyMatrix& adjecency_matrix,
+    const size_t& target) {
+    auto boa_backward_search = BOABackwardSearch(adjecency_matrix);
+    MultiValuedHeuristic mvh = boa_backward_search(target);
+    std::cout << "BOA-BS"
+        << "\t" << target << "\t" << target << "\t" << mvh[target].size()
+        << "\t" << boa_backward_search.num_expansion << "\t"
+        << boa_backward_search.num_generation << "\t" << boa_backward_search.runtime
+        << std::endl;
+}
+
 void ExperimentUtils::run_forward_search(
     const AdjacencyMatrix& adjecency_matrix, const size_t& source,
-    const size_t& target, const EPS& eps, const MultiValuedHeuristic& mvh, const float backward_search_runtime, const
-    float source_heuristic_runtime, const float target_heuristic_runtime,
+    const size_t& target, const EPS& eps, const MultiValuedHeuristic& mvh,
     const std::string& logging_file) {
     auto forward_search = ColoredForwardSearch(adjecency_matrix, eps);
     SolutionSet solutions;
@@ -69,15 +81,12 @@ void ExperimentUtils::run_forward_search(
         << "\t" << source << "\t" << target << "\t" << solutions.size()
         << "\t" << forward_search.num_expansion << "\t"
         << forward_search.num_generation << "\t" << forward_search.runtime / CLOCKS_PER_SEC
-        << "\t" << backward_search_runtime / CLOCKS_PER_SEC
-        << "\t" << source_heuristic_runtime
-        << "\t" << target_heuristic_runtime
         << std::endl;
 }
 
 void ExperimentUtils::single_run(AdjacencyMatrix& adjecency_matrix,
                                  size_t source, size_t target,
-                                 const std::string& algorithm, const EPS& eps, bool global_stop_condition,
+                                 const std::string& algorithm, const EPS& eps,
                                  std::vector<int> multi_sources,
                                  const Heuristic& svh_heuristic, const MultiValuedHeuristic& mvh,
                                  const std::string& logging_file) {
@@ -124,60 +133,33 @@ void ExperimentUtils::single_run(AdjacencyMatrix& adjecency_matrix,
         }
 
     }
-    else if (algorithm == "BS") {
-        if (global_stop_condition == false) {
-            Heuristic blind_heuristic = [](size_t vertex) -> std::vector<float> {
-                return {0, 0};
-            };
-            run_backward_search(adjecency_matrix, source, target, eps, blind_heuristic,
-                                blind_heuristic, global_stop_condition,logging_file);
-        }
-        else {
-            Heuristic source_to_target =
-                ShortestPathHeuristicComputer::compute_ideal_point_heuristic(target, adjecency_matrix);
-            Heuristic target_to_source =
-                ShortestPathHeuristicComputer::compute_ideal_point_heuristic(source, adjecency_matrix);
-            run_backward_search(adjecency_matrix, source, target, eps, source_to_target,
-                                target_to_source, global_stop_condition, logging_file);
-        }
+    else if ( algorithm == "BOA-MVH" ) {
+        run_boa_backward_search(adjecency_matrix, target);
+    }
+    else if (algorithm == "OLDBS") {
+        Heuristic blind_heuristic = [](size_t vertex) -> std::vector<float> {
+            return {0, 0};
+        };
+        run_backward_search(adjecency_matrix, source, target, eps, blind_heuristic,
+                            blind_heuristic, logging_file);
+
     }
     else if (algorithm == "FS") {
-        float heuristic_computation_runtime = 0;
-        if (mvh.empty()) {
-            long start_time = std::clock();
-            Heuristic blind_heuristic = [](size_t vertex) -> std::vector<float> {
-                return {0, 0};
-            };
-            Heuristic source_to_target =
-                ShortestPathHeuristicComputer::compute_ideal_point_heuristic(
-                    target, adjecency_matrix);
-            std::cout << "Source to target heuristic computed." << std::endl;
-            auto backward_search = BackwardSearch(adjecency_matrix, eps);
-            // See that in order to compute the mvh for forward search, the source is
-            // actually the target of the backward search and the target is actually the
-            // source!
-            MultiValuedHeuristic non_constant_mvh =
-                backward_search(target, source, blind_heuristic, source_to_target, global_stop_condition);
-            std::cout << "BS computed." << std::endl;
-            auto closure = Closure(adjecency_matrix);
-            MultiValuedHeuristic new_mvh = closure(non_constant_mvh, target, eps[0], eps[1]);
-            heuristic_computation_runtime = static_cast<float>(std::clock() - start_time);
-            std::cout << "Closure computed." << std::endl;
-            if (!multi_sources.empty()) {
-                for (auto multi_source : multi_sources) {
-                    run_forward_search(adjecency_matrix, multi_source, target, eps, new_mvh,
-                                       heuristic_computation_runtime,
-                                       0, 0, logging_file);
-                }
-            }
-        } else {
-            for (auto multi_source : multi_sources) {
-                run_forward_search(adjecency_matrix, multi_source, target, eps, mvh,
-                                   heuristic_computation_runtime,
-                                   0, 0, logging_file);
-            }
+        if (multi_sources.empty()) {
+            multi_sources.push_back(source);
         }
+        for (auto multi_source : multi_sources) {
+            run_forward_search(adjecency_matrix, multi_source, target, eps, mvh, logging_file);
+        }
+    } else if (algorithm == "EPS-MVH") {
+        auto post_process = PostProcess();
+        post_process(mvh, target, eps);
+        std::cout << "Post-processing computed." << std::endl;
 
+    } else if (algorithm == "Closure") {
+        auto closure = Closure(adjecency_matrix);
+        MultiValuedHeuristic new_mvh = closure(mvh, target, eps[0], eps[1]);
+        std::cout << "Closure computed." << std::endl;
     }
     else {
         std::cout << "Unknown algorithm: " << algorithm << std::endl;

@@ -36,11 +36,9 @@ int main(int argc, char** argv) {
                    "cutoff time (seconds)")(
         "logging_file",
         boost::program_options::value<std::string>()->default_value(""),
-        "logging file")(
-        "global_stop_condition, gsc", boost::program_options::value<bool>()->default_value(true),
-        "global stop condition for backward search")("multi_source, ms",
-                                                     boost::program_options::value<vector<int>>()->multitoken()->default_value(vector<int>{}, ""),
-                                                     "sources")(
+        "logging file")("multi_source, ms",
+                        boost::program_options::value<vector<int>>()->multitoken()->default_value(vector<int>{}, ""),
+                        "sources")(
         "svh,h", boost::program_options::value<std::string>()->default_value(""),
         "directory for single valued heuristic file")(
         "mvh,h", boost::program_options::value<std::string>()->default_value(""),
@@ -84,10 +82,9 @@ int main(int argc, char** argv) {
     std::string algorithm = vm["algorithm"].as<std::string>();
     double e1 = vm["e1"].as<double>();
     double e2 = vm["e2"].as<double>();
-    bool global_stop_condition = vm["global_stop_condition"].as<bool>();
     std::vector<int> multi_sources = vm["multi_source"].as<std::vector<int>>();
     ExperimentUtils::single_run(adjecency_matrix, source, target, algorithm,
-                                {e1, e2}, global_stop_condition, multi_sources, heuristic, mvh, logging_file);
+                                {e1, e2}, multi_sources, heuristic, mvh, logging_file);
 
     return 0;
 }

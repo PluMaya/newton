@@ -26,7 +26,6 @@ public:
     std::clock_t start_time = std::clock();
     size_t num_expansion = 0;
     size_t num_generation = 0;
-    bool global_stop_condition = true;
     float runtime = 0.0f;
 
     std::vector<float> min_g2;
@@ -36,8 +35,7 @@ public:
 
     MultiValuedHeuristic operator()(const size_t& source, const size_t& target,
                                     const Heuristic& heuristic_to_target,
-                                    const Heuristic& heuristic_to_source,
-                                    bool global_stop_condition = true);
+                                    const Heuristic& heuristic_to_source);
     virtual ~BackwardSearch() = default;
 
     virtual void insert(ApexPathPairPtr& ap, MapQueue& queue);

@@ -75,11 +75,6 @@ MultiValuedHeuristic Closure::operator()(const MultiValuedHeuristic& heuristic, 
             open.push(closure_node);
 
         }
-        if (num_generation % 100000 == 0) {
-            std::cout << "Generated " << num_generation << " nodes. " << std::endl;
-            std::cout << "Expanded " << num_expansion << " values. " << std::endl;
-            std::cout << "current h value:  (" << node->h[0] << ", " << node->h[1] << ")." << std::endl;
-        }
     }
 
     std::string e1string = std::to_string(e1);
@@ -98,6 +93,8 @@ MultiValuedHeuristic Closure::operator()(const MultiValuedHeuristic& heuristic, 
             PlotOutput << i << "\t" << solution[0] << "\t" << solution[1] << std::endl;
         }
     }
+
+    std::cout << "finised writing results to file " << ss.str() << std::endl;
 
     PlotOutput.close();
 
