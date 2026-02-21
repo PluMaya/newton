@@ -30,4 +30,5 @@ OUTDIR=output
 ./build/MultivaluedHeuristicSearch \
   --map resources/$MAP \
   --goal $GOAL \
-  --algorithm $ALG 
+  --algorithm $ALG \
+  > "${OUTDIR}/output_${RUN}_${MAP}_${GOAL}_${ALG}.txt" 2>&1
