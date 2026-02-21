@@ -6,62 +6,69 @@
 #include "multivalued_heuristic/post_process.h"
 
 #include <fstream>
+#include <iomanip>
 #include <sstream>
-#include <boost/algorithm/string.hpp>
 
+MultiValuedHeuristic
+PostProcess::operator()(const MultiValuedHeuristic& mvh,
+                        size_t target,
+                        const EPS& eps)
+{
+    MultiValuedHeuristic processed_mvh(mvh.size());
 
-bool epsilon_dominates(const std::vector<float>& v1, const std::vector <float>& v2, const EPS& eps) {
-    return v1[0] <= (1 + eps[0]) * v2[0] and v1[1] <= (1 * eps[1]) * v2[1];
-}
+    const float e0 = 1.0f + eps[0];
+    const float e1 = 1.0f + eps[1];
 
-
-MultiValuedHeuristic PostProcess::operator()(const MultiValuedHeuristic& mvh, size_t target,
-    const EPS& eps) {
-    MultiValuedHeuristic processed_mvh;
-    processed_mvh.resize(mvh.size());
     for (size_t i = 0; i < mvh.size(); ++i) {
-        if (mvh[i].empty()) {
+        if (mvh[i].empty())
             continue;
-        }
-        processed_mvh[i].push_back(mvh[i][0]);
-        std::vector<float> last_added = processed_mvh[i][0];
-        for (int j = 1; j < mvh[i].size(); j++) {
-            if (epsilon_dominates(last_added, mvh[i][j], eps)) {
-                processed_mvh[i][processed_mvh.size()-1][1] = mvh[i][j][1];
-            } else {
-                processed_mvh[i].push_back(mvh[i][j]);
-                last_added = processed_mvh[i][processed_mvh[i].size()-1];
+
+        auto& out = processed_mvh[i];
+        out.reserve(mvh[i].size());
+
+        out.push_back(mvh[i][0]);
+
+        for (size_t j = 1; j < mvh[i].size(); ++j) {
+
+            auto& last = out.back();
+            const auto& cur = mvh[i][j];
+
+            if (last[0] <= e0 * cur[0] &&
+                last[1] <= e1 * cur[1])
+            {
+                last[1] = cur[1];
+            }
+            else {
+                out.push_back(cur);
             }
         }
-        if (processed_mvh[i].size() > 1) {
-            std::vector<std::vector<float>> result = {};
-            for (int j = 0; j < processed_mvh[i].size() - 1; j++) {
-                std::vector staired_mvh = {processed_mvh[i][j][0], processed_mvh[i][j + 1][1]};
-                result.push_back(staired_mvh);
+
+        if (out.size() > 1) {
+            std::vector<std::vector<float>> stair;
+            stair.reserve(out.size() - 1);
+
+            for (size_t j = 0; j + 1 < out.size(); ++j) {
+                stair.push_back({ out[j][0], out[j+1][1] });
             }
-            processed_mvh[i] = result;
+
+            out.swap(stair);
         }
     }
 
-    std::string e1string = std::to_string(eps[0]);
-    std::string e2string = std::to_string(eps[1]);
-    std::vector<std::string> dceomp_temp;
-    e1string = boost::split(dceomp_temp, e1string, boost::is_any_of("."))[1].substr(0, 3);
-    e2string = split(dceomp_temp, e2string, boost::is_any_of("."))[1].substr(0, 3);
-
     std::stringstream ss;
-    ss << target << "_" << e1string << "_" << e2string << "_post_process_mvh.txt";
+    ss << target << "_"
+       << std::fixed << std::setprecision(3)
+       << eps[0] << "_"
+       << eps[1]
+       << "_post_process_mvh.txt";
 
     std::ofstream PlotOutput(ss.str());
 
-    for (int i = 0; i < processed_mvh.size(); i++) {
-        for (int j=0; j < processed_mvh[i].size(); j++) {
-            PlotOutput <<  i << "\t" << processed_mvh[i][j][0] << "\t" << processed_mvh[i][j][1] << std::endl;
-        }
-    }
+    for (size_t i = 0; i < processed_mvh.size(); ++i)
+        for (const auto& p : processed_mvh[i])
+            PlotOutput << i << "\t"
+                       << p[0] << "\t"
+                       << p[1] << "\n";
 
-    PlotOutput.close();
     return processed_mvh;
 }
-
-
