@@ -12,30 +12,41 @@
 
 MultiValuedHeuristic MVHParser::parse_heuristic(const std::string& heuristic_path) {
     std::ifstream heuristic_infile(heuristic_path);
-
     if (!heuristic_infile) {
-        std::cerr << "Error opening file: " << heuristic_path << std::endl;
-        exit(1);
+        throw std::runtime_error("Error opening file: " + heuristic_path);
     }
 
-    MultiValuedHeuristic mvh;
-    std::string heuristic_line;
-    while (std::getline(heuristic_infile, heuristic_line)) {
+    std::string line;
+    size_t max_state = 0;
 
-        if (heuristic_line.empty())
-            continue;
+    // First pass: find max state
+    while (std::getline(heuristic_infile, line)) {
+        if (line.empty()) continue;
 
-        std::vector<std::string> decomposed_heuristic_line;
-        split(decomposed_heuristic_line, heuristic_line, boost::is_any_of("\t"));
+        std::vector<std::string> tokens;
+        split(tokens, line, boost::is_any_of("\t"));
 
-        size_t state = std::stoul(decomposed_heuristic_line[0]);
-        float h1 = std::stof(decomposed_heuristic_line[1]);
-        float h2 = std::stof(decomposed_heuristic_line[2]);
+        size_t state = std::stoul(tokens[0]);
+        max_state = std::max(max_state, state);
+    }
 
-        // Resize if needed
-        if (state >= mvh.size()) {
-            mvh.resize(state + 1);
-        }
+    // Allocate all states with empty vectors
+    MultiValuedHeuristic mvh(max_state + 1);
+
+    // Reset stream
+    heuristic_infile.clear();
+    heuristic_infile.seekg(0);
+
+    // Second pass: fill
+    while (std::getline(heuristic_infile, line)) {
+        if (line.empty()) continue;
+
+        std::vector<std::string> tokens;
+        split(tokens, line, boost::is_any_of("\t"));
+
+        size_t state = std::stoul(tokens[0]);
+        float h1 = std::stof(tokens[1]);
+        float h2 = std::stof(tokens[2]);
 
         mvh[state].push_back({h1, h2});
     }

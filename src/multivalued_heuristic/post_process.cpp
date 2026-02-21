@@ -20,6 +20,9 @@ MultiValuedHeuristic PostProcess::operator()(const MultiValuedHeuristic& mvh, si
     MultiValuedHeuristic processed_mvh;
     processed_mvh.resize(mvh.size());
     for (size_t i = 0; i < mvh.size(); ++i) {
+        if (mvh[i].empty()) {
+            continue;
+        }
         processed_mvh[i].push_back(mvh[i][0]);
         std::vector<float> last_added = processed_mvh[i][0];
         for (int j = 1; j < mvh[i].size(); j++) {
