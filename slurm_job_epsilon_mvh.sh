@@ -13,7 +13,7 @@
 cd $SLURM_SUBMIT_DIR
 
 # Read the line corresponding to this array task
-LINE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" epsilon_computation.txt)
+LINE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" epsilon_queries.txt)
 
 export LD_LIBRARY_PATH=$HOME/boost_install/lib:$LD_LIBRARY_PATH
 
