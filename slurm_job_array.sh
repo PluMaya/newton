@@ -1,8 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=multivalued_heuristic_search
+#SBATCH --job-name=multivalued_heuristic_search_queries
 #SBATCH --output=logs/%x_%A_%a.out
 #SBATCH --error=logs/%x_%A_%a.err
-#SBATCH --time=02:00:00
 #SBATCH --mem=4G
 #SBATCH --nodelist=protagoras # Request run only on nodes newton3/newton4/galileo1
 #SBATCH --array=1 # TODO check this every time!
@@ -14,13 +13,13 @@
 cd $SLURM_SUBMIT_DIR
 
 # Read the line corresponding to this array task
-LINE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" small_queries.txt)
+LINE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" queries.txt)
 
 export LD_LIBRARY_PATH=$HOME/boost_install/lib:$LD_LIBRARY_PATH
 
 
 # Split line into variables
-read -r MAP ALG E1 E2 GOAL REST <<< "$LINE"
+read -r MAP ALG GOAL E1 E2 MVH REST <<< "$LINE"
 STARTS="$REST"
 
 # Create unique output folder
@@ -33,6 +32,7 @@ OUTDIR=output
   --algorithm $ALG \
   --e1 $E1 \
   --e2 $E2 \
+  --mvh $MVH \
   --logging_file "${OUTDIR}/run_${RUN}_${MAP}_${ALG}_${GOAL}_${E1}_${E2}" \
   --multi_source $STARTS \
   > "${OUTDIR}/output_${RUN}_${MAP}_${GOAL}_${ALG}_${E1}_${E2}.txt" 2>&1
