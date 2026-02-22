@@ -15,7 +15,6 @@
 
 BOABackwardSearch::BOABackwardSearch(const AdjacencyMatrix& adj_matrix):
     adj_matrix(adj_matrix) {
-    min_g2.resize(adj_matrix.size() + 1, static_cast<float>(MAX_COST));
 }
 
 
@@ -68,7 +67,7 @@ MultiValuedHeuristic BOABackwardSearch::operator()(const size_t& source) {
                 continue;
             }
 
-            auto next = std::make_shared<Node>(next_id, next_g, std::vector<float>{0,0}, node);
+            auto next = std::make_shared<Node>(next_id, next_g, std::vector<float>(2, 0.0f));
 
             open.push(next);
         }
@@ -80,13 +79,13 @@ MultiValuedHeuristic BOABackwardSearch::operator()(const size_t& source) {
 
     std::ofstream PlotOutput(ss.str());
 
-    for (int i = 0; i < adj_matrix.size() + 1; i++) {
+    for (size_t i = 0; i < adj_matrix.size() + 1; i++) {
         for (const auto& solution : mvh_results[i]) {
-            PlotOutput << i << "\t" << solution[0] << "\t" << solution[1] << std::endl;
+            PlotOutput << i << "\t" << solution[0] << "\t" << solution[1] << "\n";
         }
     }
 
-    std::cout << "finised writing results to file " << ss.str() << std::endl;
+    std::cout << "finished writing results to file " << ss.str() << std::endl;
 
     PlotOutput.close();
 

@@ -37,8 +37,8 @@ void ColoredForwardSearch::operator()(
 
     auto initialization_time = std::clock();
 
-    for (int i = 0; i < heuristic[source].size(); i++) {
-        NodePtr source_node = std::make_unique<Node>(
+    for (size_t i = 0; i < heuristic[source].size(); i++) {
+        NodePtr source_node = std::make_shared<Node>(
             source,
             std::vector<float>(2, 0),
             heuristic[source][i],
@@ -77,26 +77,27 @@ void ColoredForwardSearch::operator()(
         const std::vector<Edge>& outgoing_edges = adj_matrix[node->id];
         for (const auto& outgoing_edge : outgoing_edges) {
             std::vector new_g(node->g);
-            for (int i = 0; i < new_g.size(); i++) {
+            for (size_t i = 0; i < new_g.size(); i++) {
                 new_g[i] += outgoing_edge.cost[i];
             }
 
-            for (int i = 0; i < heuristic[outgoing_edge.target].size(); i++) {
-                const auto hvalue = heuristic[outgoing_edge.target][i];
+            const auto& target_heuristics = heuristic[outgoing_edge.target];
+            for (size_t i = 0; i < target_heuristics.size(); i++) {
+                const auto& hvalue = target_heuristics[i];  // reference, no vector copy
 
-                if ((node->h[0] <= hvalue[0] + outgoing_edge.cost[0]) && (node->h[1] <= hvalue[1] + outgoing_edge.cost[
-                    1])) {
-                    NodePtr successor_node = std::make_shared<Node>(
-                        outgoing_edge.target, new_g, hvalue, node, outgoing_edge.cost, i);
-                    if (min_g2[successor_node->id][i] <= successor_node->g[1]) {
+                if ((node->h[0] <= hvalue[0] + outgoing_edge.cost[0]) &&
+                    (node->h[1] <= hvalue[1] + outgoing_edge.cost[1])) {
+                    // Run both dominance checks before allocating a Node.
+                    if (min_g2[outgoing_edge.target][i] <= new_g[1]) {
                         // local dominance check
                         continue;
                     }
-                    if (min_g2[target][0] <= successor_node->f[1]) {
+                    if (min_g2[target][0] <= new_g[1] + hvalue[1]) {
                         // global dominance check
                         continue;
                     }
-                    open.push(successor_node);
+                    open.push(std::make_shared<Node>(
+                        outgoing_edge.target, new_g, hvalue, node, outgoing_edge.cost, i));
                 }
             }
         }

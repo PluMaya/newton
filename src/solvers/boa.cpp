@@ -63,22 +63,24 @@ void BOAStar::operator()(const size_t& source, const size_t& target,
         const std::vector<Edge>& outgoing_edges = adj_matrix[node->id];
 
         for (const auto& outgoing_edge : outgoing_edges) {
-            size_t next_id = outgoing_edge.target;
-            std::vector<float> next_g = {
-                node->g[0] + outgoing_edge.cost[0],
-                node->g[1] + outgoing_edge.cost[1]
-            };
-            auto next_h = heuristic(next_id);
+            const size_t next_id = outgoing_edge.target;
+            const float next_g1 = node->g[1] + outgoing_edge.cost[1];
 
-            // Dominance check
-            if ((next_g[1] + next_h[1]) >= min_g2[target] ||
-                (next_g[1] >= min_g2[next_id])) {
+            // Local dominance check — scalar only, no allocation.
+            if (next_g1 >= min_g2[next_id]) {
                 continue;
             }
 
-            auto next = std::make_shared<Node>(next_id, next_g, next_h, node);
+            // Heuristic call deferred until local check passes.
+            const auto next_h = heuristic(next_id);
 
-            open.push(next);
+            // Global dominance check.
+            if (next_g1 + next_h[1] >= min_g2[target]) {
+                continue;
+            }
+
+            std::vector<float> next_g = {node->g[0] + outgoing_edge.cost[0], next_g1};
+            open.push(std::make_shared<Node>(next_id, next_g, next_h, node));
         }
     }
 
@@ -89,7 +91,7 @@ void BOAStar::operator()(const size_t& source, const size_t& target,
     std::ofstream SolutionOutput(solution_ss.str());
 
     for (auto const& solution : solutions) {
-        SolutionOutput << solution->g[0] << "," << solution->g[1] << std::endl;
+        SolutionOutput << solution->g[0] << "," << solution->g[1] << "\n";
     }
 
     SolutionOutput.close();
@@ -101,11 +103,11 @@ void BOAStar::operator()(const size_t& source, const size_t& target,
 
     auto initialization_runtime = initialization_time - start_time;
     // write one line of clock time, number of expansions, number of generations
-    StatsOutput << initialization_runtime / CLOCKS_PER_SEC << "\t" << runtime / CLOCKS_PER_SEC << "\t" << num_expansion << "\t" << num_generation << std::endl;
-    StatsOutput << num_generation << "\t" << num_expansion << std::endl;
+    StatsOutput << initialization_runtime / CLOCKS_PER_SEC << "\t" << runtime / CLOCKS_PER_SEC << "\t" << num_expansion << "\t" << num_generation << "\n";
+    StatsOutput << num_generation << "\t" << num_expansion << "\n";
 
     for (size_t s = 0; s < adj_matrix.size() + 1; ++s) {
-        StatsOutput << s << "\t" << generated[s] << "\t" << expanded[s] << std::endl;
+        StatsOutput << s << "\t" << generated[s] << "\t" << expanded[s] << "\n";
     }
 
     StatsOutput.close();

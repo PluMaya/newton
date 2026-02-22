@@ -5,6 +5,7 @@
 #include "solvers/shortest_path_heuristic_computer.h"
 
 #include <fstream>
+#include <limits>
 
 #include "data_structures/node.h"
 
@@ -30,8 +31,7 @@ compute_single_cost(const size_t& source,
                     const AdjacencyMatrix& adjacency_matrix,
                     const int cost_idx) {
     size_t V = adjacency_matrix.size() + 1;
-    std::vector<float> dist(V, static_cast<float>(99999999999));
-    std::vector<size_t> parent(V, -1);
+    std::vector<float> dist(V, std::numeric_limits<float>::max());
     std::priority_queue<std::pair<float, size_t>,
                         std::vector<std::pair<float, size_t>>, PairComparator>
         pq;
@@ -43,12 +43,11 @@ compute_single_cost(const size_t& source,
         size_t u = pq.top().second;
         pq.pop();
 
-        for (auto edge : adjacency_matrix[u]) {
-            float move_cost = dist[edge.source] + edge.cost.at(cost_idx);
-            if (move_cost < 9999999999 && move_cost < dist[edge.target]) {
+        for (const auto& edge : adjacency_matrix[u]) {  // const& avoids copying Edge+cost vector
+            float move_cost = dist[edge.source] + edge.cost[cost_idx];
+            if (move_cost < std::numeric_limits<float>::max() && move_cost < dist[edge.target]) {
                 dist[edge.target] = move_cost;
                 pq.emplace(dist[edge.target], edge.target);
-                parent[edge.target] = u;
             }
         }
     }
@@ -61,12 +60,14 @@ compute_single_cost_upper_bound(const size_t& source,
                                 const AdjacencyMatrix& adjacency_matrix,
                                 const int cost_idx) {
     size_t V = adjacency_matrix.size() + 1;
-    std::vector<float> dist(V, static_cast<float>(99999999999));
+    std::vector<float> dist(V, std::numeric_limits<float>::max());
     std::vector<std::vector<float>> all_distances(V, std::vector<float>(adjacency_matrix.num_of_objectives, 0));
-    std::vector<size_t> parent(V, -1);
     std::priority_queue<std::pair<float, size_t>,
                         std::vector<std::pair<float, size_t>>, PairComparator>
         pq;
+
+    // Scratch buffer — allocated once and reused each iteration.
+    std::vector<float> all_objectives_move_cost(adjacency_matrix.num_of_objectives, 0);
 
     dist[source] = 0;
     pq.emplace(0, source);
@@ -75,17 +76,15 @@ compute_single_cost_upper_bound(const size_t& source,
         size_t u = pq.top().second;
         pq.pop();
 
-        for (auto edge : adjacency_matrix[u]) {
-            float move_cost = dist[edge.source] + edge.cost.at(cost_idx);
-            std::vector<float> all_objectives_move_cost = std::vector<float>(adjacency_matrix.num_of_objectives, 0);
-            for (int i = 0; i < adjacency_matrix.num_of_objectives; i++) {
-                all_objectives_move_cost[i] = all_distances[edge.source][i] + edge.cost.at(i);
-            }
-            if (move_cost < 9999999999 && move_cost < dist[edge.target]) {
+        for (const auto& edge : adjacency_matrix[u]) {  // const& avoids copying Edge+cost vector
+            float move_cost = dist[edge.source] + edge.cost[cost_idx];
+            if (move_cost < std::numeric_limits<float>::max() && move_cost < dist[edge.target]) {
+                for (int i = 0; i < adjacency_matrix.num_of_objectives; i++) {
+                    all_objectives_move_cost[i] = all_distances[edge.source][i] + edge.cost[i];
+                }
                 dist[edge.target] = move_cost;
                 all_distances[edge.target] = all_objectives_move_cost;
                 pq.emplace(dist[edge.target], edge.target);
-                parent[edge.target] = u;
             }
         }
     }
@@ -105,20 +104,23 @@ Heuristic ShortestPathHeuristicComputer::compute_ideal_point_heuristic(
     ss << source << "_iph.txt";
     std::ofstream PlotOutput(ss.str());
 
-    for (int i = 0; i < adjacency_matrix.size() + 1; i++) {
-        PlotOutput << i << '\t' << heuristic_values_for_objectives[0][i] << "\t" << heuristic_values_for_objectives[1][i] << std::endl;
+    for (size_t i = 0; i < adjacency_matrix.size() + 1; i++) {
+        PlotOutput << i << '\t' << heuristic_values_for_objectives[0][i] << "\t" << heuristic_values_for_objectives[1][i] << "\n";
     }
 
     PlotOutput.close();
 
-    return [heuristic_values_for_objectives](size_t index) -> std::vector<float> {
-        std::vector<float> result;
-        result.reserve(heuristic_values_for_objectives.size());
-        for (const auto& heuristic_values_for_objective :
-             heuristic_values_for_objectives) {
-            result.push_back(heuristic_values_for_objective[index]);
-        }
-        return result;
+    // Pre-transpose from [objective][node] to [node][objective] so each lookup
+    // is a single contiguous row-copy rather than striding across separate arrays.
+    const size_t V = adjacency_matrix.size() + 1;
+    const int num_obj = adjacency_matrix.num_of_objectives;
+    std::vector<std::vector<float>> transposed(V, std::vector<float>(num_obj));
+    for (size_t n = 0; n < V; ++n)
+        for (int obj = 0; obj < num_obj; ++obj)
+            transposed[n][obj] = heuristic_values_for_objectives[obj][n];
+
+    return [t = std::move(transposed)](size_t index) -> std::vector<float> {
+        return t[index];
     };
 }
 

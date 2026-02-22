@@ -4,6 +4,7 @@
 
 #include "multivalued_heuristic/closure.h"
 
+#include <array>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -11,21 +12,15 @@
 #include <boost/algorithm/string.hpp>
 
 
-class ClosureNode;
-using ClosureNodePtr = std::shared_ptr<ClosureNode>;
-
-class ClosureNode {
-public:
-    const size_t id;
-    const std::vector<float> h;
-
-    ClosureNode(size_t id, const std::vector<float>& h) : id(id), h(h) {}
-
+// Plain value struct — no heap allocation per node, no atomic refcounting.
+struct ClosureNode {
+    size_t id;
+    std::array<float, 2> h;
 };
 
-struct CompareClosureNodeByHValue {
-    bool operator()(const ClosureNodePtr& a, const ClosureNodePtr& b) const {
-        return a->h > b->h;  // TODO: make sure this is lexicographical
+struct CompareClosureNode {
+    bool operator()(const ClosureNode& a, const ClosureNode& b) const {
+        return a.h > b.h;  // lexicographic min-heap
     }
 };
 
@@ -36,44 +31,55 @@ MultiValuedHeuristic Closure::operator()(const MultiValuedHeuristic& heuristic, 
     float e1, float e2) {
     start_time = std::clock();
     MultiValuedHeuristic mvh_results(adj_matrix.size() + 1);
-    min_g2.resize(adj_matrix.size() + 1, static_cast<float>(MAX_COST));
-    for (size_t i = 0; i < adj_matrix.size() + 1; ++i) {
-        mvh_results[i] = {};
-    }
+    min_g2.assign(adj_matrix.size() + 1, static_cast<float>(MAX_COST));
 
-    std::vector<ClosureNodePtr> heuristic_values = {};
+    // Pre-count total entries so we can reserve and heapify in O(N)
+    // instead of doing N individual O(log N) pushes.
+    size_t total = 0;
+    for (const auto& h_node : heuristic) total += h_node.size();
 
+    std::vector<ClosureNode> heuristic_values;
+    heuristic_values.reserve(total);
     for (size_t i = 0; i < heuristic.size(); i++) {
         for (size_t j = 0; j < heuristic[i].size(); j++) {
-            auto closure_node = std::make_shared<ClosureNode>(i, heuristic[i][j]);
-            heuristic_values.push_back(closure_node);
+            heuristic_values.push_back({i, {heuristic[i][j][0], heuristic[i][j][1]}});
         }
     }
-    std::vector<float> prev_value = {0, 0};
-    std::priority_queue open(CompareClosureNodeByHValue(), heuristic_values);
-    while(!open.empty()) {
-        auto node = open.top();
+
+    // O(N) heap construction via the container constructor.
+    std::priority_queue<ClosureNode, std::vector<ClosureNode>, CompareClosureNode> open(
+        CompareClosureNode{}, std::move(heuristic_values));
+
+    std::array<float, 2> prev_value = {0.0f, 0.0f};
+
+    while (!open.empty()) {
+        const ClosureNode node = open.top();
         open.pop();
-        if ((node->h[0] < prev_value[0]) || (node->h[0] == prev_value[0] && node->h[1] < prev_value[1])) {
-            std::cout << "Warning: heuristic values are not sorted in non-decreasing order. Current node: " << node->id << " h value: (" << node->h[0] << ", " << node->h[1] << "). Previous h value: (" << prev_value[0] << ", " << prev_value[1] << ")." << std::endl;
+        if ((node.h[0] < prev_value[0]) ||
+            (node.h[0] == prev_value[0] && node.h[1] < prev_value[1])) {
+            std::cout << "Warning: heuristic values are not sorted in non-decreasing order. "
+                      << "Current node: " << node.id
+                      << " h value: (" << node.h[0] << ", " << node.h[1] << "). "
+                      << "Previous h value: (" << prev_value[0] << ", " << prev_value[1] << ")."
+                      << std::endl;
         }
-        prev_value = node->h;
+        prev_value = node.h;
         num_generation += 1;
-        if (min_g2[node->id] <= node->h[1]) {
+        if (min_g2[node.id] <= node.h[1]) {
             continue;
         }
-        mvh_results[node->id].push_back(node->h);
+        mvh_results[node.id].push_back({node.h[0], node.h[1]});
         num_expansion += 1;
-        min_g2[node->id] = node->h[1];
-        for (const auto& outgoing_edge : adj_matrix[node->id]) {
-            std::vector<float> new_h = {node->h[0] + outgoing_edge.cost[0],
-                                        node->h[1] + outgoing_edge.cost[1]};
+        min_g2[node.id] = node.h[1];
+        for (const auto& outgoing_edge : adj_matrix[node.id]) {
+            const std::array<float, 2> new_h = {
+                node.h[0] + outgoing_edge.cost[0],
+                node.h[1] + outgoing_edge.cost[1]
+            };
             if (min_g2[outgoing_edge.target] <= new_h[1]) {
                 continue;
             }
-            auto closure_node = std::make_shared<ClosureNode>(outgoing_edge.target, new_h);
-            open.push(closure_node);
-
+            open.push({outgoing_edge.target, new_h});
         }
     }
 
@@ -88,13 +94,13 @@ MultiValuedHeuristic Closure::operator()(const MultiValuedHeuristic& heuristic, 
 
     std::ofstream PlotOutput(ss.str());
 
-    for (int i = 0; i < adj_matrix.size() + 1; i++) {
+    for (size_t i = 0; i < adj_matrix.size() + 1; i++) {
         for (const auto& solution : mvh_results[i]) {
-            PlotOutput << i << "\t" << solution[0] << "\t" << solution[1] << std::endl;
+            PlotOutput << i << "\t" << solution[0] << "\t" << solution[1] << "\n";
         }
     }
 
-    std::cout << "finised writing results to file " << ss.str() << std::endl;
+    std::cout << "finished writing results to file " << ss.str() << std::endl;
 
     PlotOutput.close();
 

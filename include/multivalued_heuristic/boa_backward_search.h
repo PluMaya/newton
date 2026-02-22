@@ -17,8 +17,6 @@ public:
     size_t num_expansion = 0;
     size_t num_generation = 0;
 
-    std::vector<float> min_g2;
-
     MultiValuedHeuristic operator()(const size_t& source);
     virtual ~BOABackwardSearch() = default;
 
