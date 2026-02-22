@@ -12,7 +12,7 @@ class ExperimentUtils {
 public:
     static void run_boa_star(const AdjacencyMatrix& adjecency_matrix,
                              const size_t& source, const size_t& target,
-                             const Heuristic& heuristic, clock_t heuristic_runtime,
+                             const Heuristic& heuristic,
                              const std::string& logging_file);
 
     static void run_apex(const AdjacencyMatrix& adjecency_matrix,

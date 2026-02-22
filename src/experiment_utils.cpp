@@ -20,7 +20,7 @@
 
 void ExperimentUtils::run_boa_star(const AdjacencyMatrix& adjecency_matrix,
                                    const size_t& source, const size_t& target,
-                                   const Heuristic& heuristic, const clock_t heuristic_runtime,
+                                   const Heuristic& heuristic,
                                    const std::string& logging_file) {
     auto boa = BOAStar(adjecency_matrix);
     SolutionSet solutions;
@@ -28,7 +28,7 @@ void ExperimentUtils::run_boa_star(const AdjacencyMatrix& adjecency_matrix,
     std::cout << "BOA"
         << "\t" << source << "\t" << target << "\t" << solutions.size()
         << "\t" << boa.num_expansion << "\t" << boa.num_generation << "\t"
-        << boa.runtime << "\t" << heuristic_runtime << std::endl;
+        << boa.runtime << std::endl;
 }
 
 void ExperimentUtils::run_apex(const AdjacencyMatrix& adjecency_matrix,
@@ -94,24 +94,9 @@ void ExperimentUtils::single_run(AdjacencyMatrix& adjecency_matrix,
         multi_sources.push_back(source);
     }
     if (algorithm == "BOA") {
-        auto heuristic_duration = 0L;
-        if (svh_heuristic == nullptr) {
-            auto heuristic_start_time = std::clock();
-
-            Heuristic new_svh_heuristic =
-                ShortestPathHeuristicComputer::compute_ideal_point_heuristic(
-                    target, adjecency_matrix);
-            heuristic_duration = static_cast<long>(std::clock() - heuristic_start_time);
-            for (auto multi_source : multi_sources) {
-                run_boa_star(adjecency_matrix, multi_source, target, new_svh_heuristic, heuristic_duration,
-                    logging_file);
-            }
-        } else {
-            for (auto multi_source : multi_sources) {
-                run_boa_star(adjecency_matrix, multi_source, target, svh_heuristic, heuristic_duration, logging_file);
-            }
+        for (auto multi_source : multi_sources) {
+            run_boa_star(adjecency_matrix, multi_source, target, svh_heuristic, logging_file);
         }
-
     }
     else if (algorithm == "APEX") {
         auto heuristic_duration = 0L;
