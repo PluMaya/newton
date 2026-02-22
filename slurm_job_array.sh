@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=multivalued_heuristic_search_queries
+#SBATCH --job-name=multivalued_heuristic_search_queries_boa
 #SBATCH --output=logs/%x_%A_%a.out
 #SBATCH --error=logs/%x_%A_%a.err
 #SBATCH --mem=4G
