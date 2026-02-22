@@ -5,7 +5,6 @@
 #include <fstream>
 #include <iostream>
 #include <queue>
-#include <sstream>
 #include <solvers/boa.h>
 
 BOAStar::BOAStar(const AdjacencyMatrix& adj_matrix)
@@ -15,7 +14,8 @@ BOAStar::BOAStar(const AdjacencyMatrix& adj_matrix)
 void BOAStar::operator()(const size_t& source, const size_t& target,
                          const Heuristic& heuristic, SolutionSet& solutions,
                          const unsigned int time_limit,
-                         const std::string& logging_file) {
+                         const std::string& solutions_file,
+                         const std::string& stats_file) {
     init_search();
     // Vector to hold mininum cost of 2nd criteria per node
     std::vector<float> min_g2(adj_matrix.size() + 1,
@@ -86,9 +86,7 @@ void BOAStar::operator()(const size_t& source, const size_t& target,
 
     runtime = static_cast<float>(std::clock() - start_time);
 
-    std::stringstream solution_ss;
-    solution_ss << logging_file << "_" << source << "_solutions.txt";
-    std::ofstream SolutionOutput(solution_ss.str());
+    std::ofstream SolutionOutput(solutions_file);
 
     for (auto const& solution : solutions) {
         SolutionOutput << solution->g[0] << "," << solution->g[1] << "\n";
@@ -96,10 +94,7 @@ void BOAStar::operator()(const size_t& source, const size_t& target,
 
     SolutionOutput.close();
 
-
-    std::stringstream stats_ss;
-    stats_ss << logging_file << "_" << source << "_stats.txt";
-    std::ofstream StatsOutput(stats_ss.str());
+    std::ofstream StatsOutput(stats_file);
 
     auto initialization_runtime = initialization_time - start_time;
     // write one line of clock time, number of expansions, number of generations
@@ -107,6 +102,9 @@ void BOAStar::operator()(const size_t& source, const size_t& target,
     StatsOutput << num_generation << "\t" << num_expansion << "\n";
 
     for (size_t s = 0; s < adj_matrix.size() + 1; ++s) {
+        if (generated[s] == 0) {
+            continue;
+        }
         StatsOutput << s << "\t" << generated[s] << "\t" << expanded[s] << "\n";
     }
 

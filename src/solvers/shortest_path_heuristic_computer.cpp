@@ -11,7 +11,6 @@
 
 #include <iostream>
 #include <queue>
-#include <sstream>
 
 struct PairComparator {
     bool operator()(const std::pair<float, size_t>& lhs,
@@ -92,7 +91,8 @@ compute_single_cost_upper_bound(const size_t& source,
 }
 
 Heuristic ShortestPathHeuristicComputer::compute_ideal_point_heuristic(
-    const size_t& source, const AdjacencyMatrix& adjacency_matrix) {
+    const size_t& source, const AdjacencyMatrix& adjacency_matrix,
+    const std::string& output_file) {
     std::vector<std::vector<float>> heuristic_values_for_objectives(
         adjacency_matrix.num_of_objectives);
 
@@ -100,9 +100,7 @@ Heuristic ShortestPathHeuristicComputer::compute_ideal_point_heuristic(
         heuristic_values_for_objectives[j] =
             compute_single_cost(source, adjacency_matrix, j);
     }
-    std::stringstream ss;
-    ss << source << "_iph.txt";
-    std::ofstream PlotOutput(ss.str());
+    std::ofstream PlotOutput(output_file);
 
     for (size_t i = 0; i < adjacency_matrix.size() + 1; i++) {
         PlotOutput << i << '\t' << heuristic_values_for_objectives[0][i] << "\t" << heuristic_values_for_objectives[1][i] << "\n";

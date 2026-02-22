@@ -26,7 +26,7 @@ public:
 
     std::vector<float> min_g2;
     explicit Closure(const AdjacencyMatrix& adj_matrix);
-    MultiValuedHeuristic operator()(const MultiValuedHeuristic& heuristic, size_t target, float e1, float e2);
+    MultiValuedHeuristic operator()(const MultiValuedHeuristic& heuristic, const std::string& output_file);
     virtual ~Closure() = default;
 };
 

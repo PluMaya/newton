@@ -10,7 +10,8 @@
 class ShortestPathHeuristicComputer {
 public:
     static Heuristic compute_ideal_point_heuristic(const size_t& target,
-                                                   const AdjacencyMatrix& adjacency_matrix);
+                                                   const AdjacencyMatrix& adjacency_matrix,
+                                                   const std::string& output_file);
     static UpperBoundHeuristic compute_ideal_point_heuristic_with_bound(const size_t& target,
                                                                         const AdjacencyMatrix& adjacency_matrix);
 };

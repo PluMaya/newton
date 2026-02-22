@@ -6,13 +6,11 @@
 #include "multivalued_heuristic/post_process.h"
 
 #include <fstream>
-#include <iomanip>
-#include <sstream>
 
 MultiValuedHeuristic
 PostProcess::operator()(const MultiValuedHeuristic& mvh,
-                        size_t target,
-                        const EPS& eps)
+                        const EPS& eps,
+                        const std::string& output_file)
 {
     MultiValuedHeuristic processed_mvh(mvh.size());
 
@@ -55,14 +53,7 @@ PostProcess::operator()(const MultiValuedHeuristic& mvh,
         }
     }
 
-    std::stringstream ss;
-    ss << target << "_"
-       << std::fixed << std::setprecision(3)
-       << eps[0] << "_"
-       << eps[1]
-       << "_post_process_mvh.txt";
-
-    std::ofstream PlotOutput(ss.str());
+    std::ofstream PlotOutput(output_file);
 
     for (size_t i = 0; i < processed_mvh.size(); ++i)
         for (const auto& p : processed_mvh[i])

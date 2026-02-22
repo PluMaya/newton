@@ -12,8 +12,8 @@ class PostProcess {
 public:
     PostProcess() = default;
 
-    MultiValuedHeuristic operator()(const MultiValuedHeuristic& mvh, size_t target,
-    const EPS& eps);
+    MultiValuedHeuristic operator()(const MultiValuedHeuristic& mvh, const EPS& eps,
+    const std::string& output_file);
 };
 
 #endif //POST_PROCESS_H

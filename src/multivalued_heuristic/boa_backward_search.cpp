@@ -8,7 +8,6 @@
 #include <fstream>
 #include <iostream>
 #include <queue>
-#include <sstream>
 
 #include "data_structures/node.h"
 
@@ -18,7 +17,7 @@ BOABackwardSearch::BOABackwardSearch(const AdjacencyMatrix& adj_matrix):
 }
 
 
-MultiValuedHeuristic BOABackwardSearch::operator()(const size_t& source) {
+MultiValuedHeuristic BOABackwardSearch::operator()(const size_t& source, const std::string& output_file) {
     std::vector<float> min_g2(adj_matrix.size() + 1,
                               static_cast<float>(MAX_COST));
 
@@ -74,10 +73,8 @@ MultiValuedHeuristic BOABackwardSearch::operator()(const size_t& source) {
     }
 
     runtime = static_cast<float>(std::clock() - start_time);
-    std::stringstream ss;
-    ss << source << "_boa_mvh.txt";
 
-    std::ofstream PlotOutput(ss.str());
+    std::ofstream PlotOutput(output_file);
 
     for (size_t i = 0; i < adj_matrix.size() + 1; i++) {
         for (const auto& solution : mvh_results[i]) {
@@ -85,7 +82,7 @@ MultiValuedHeuristic BOABackwardSearch::operator()(const size_t& source) {
         }
     }
 
-    std::cout << "finished writing results to file " << ss.str() << std::endl;
+    std::cout << "finished writing results to file " << output_file << std::endl;
 
     PlotOutput.close();
 

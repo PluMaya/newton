@@ -33,7 +33,8 @@ TEST_CASE("BOAStar: finds both Pareto-optimal paths on a 3-node graph") {
     SolutionSet solutions;
 
     boa(/*source=*/0, /*target=*/2, zero_heuristic(), solutions,
-        /*time_limit=*/0, /*logging_file=*/"/tmp/test_boa");
+        /*time_limit=*/0, /*solutions_file=*/"/tmp/test_boa_solutions.txt",
+        /*stats_file=*/"/tmp/test_boa_stats.txt");
 
     REQUIRE(solutions.size() == 2);
 
@@ -57,7 +58,8 @@ TEST_CASE("BOAStar: all solutions reach the target node") {
     BOAStar boa(adj);
     SolutionSet solutions;
 
-    boa(0, 2, zero_heuristic(), solutions, 0, "/tmp/test_boa");
+    boa(0, 2, zero_heuristic(), solutions, 0,
+        "/tmp/test_boa_solutions.txt", "/tmp/test_boa_stats.txt");
 
     for (const auto& sol : solutions) {
         CHECK(sol->id == 2);
@@ -77,7 +79,8 @@ TEST_CASE("BOAStar: dominated path is not returned") {
     BOAStar boa(adj);
     SolutionSet solutions;
 
-    boa(0, 2, zero_heuristic(), solutions, 0, "/tmp/test_boa_dom");
+    boa(0, 2, zero_heuristic(), solutions, 0,
+        "/tmp/test_boa_dom_solutions.txt", "/tmp/test_boa_dom_stats.txt");
 
     REQUIRE(solutions.size() == 1);
     CHECK(solutions[0]->g[0] == doctest::Approx(2.0f));
@@ -91,7 +94,8 @@ TEST_CASE("BOAStar: source equals target returns empty solution set") {
 
     // Source == target: the initial node is immediately a solution but g=(0,0).
     // BOA* expands node 0, checks id==target (0==0), pushes to solutions.
-    boa(0, 0, zero_heuristic(), solutions, 0, "/tmp/test_boa_self");
+    boa(0, 0, zero_heuristic(), solutions, 0,
+        "/tmp/test_boa_self_solutions.txt", "/tmp/test_boa_self_stats.txt");
 
     // The source node itself (g=(0,0)) should be the only solution.
     REQUIRE(solutions.size() == 1);

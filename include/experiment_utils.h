@@ -28,7 +28,7 @@ public:
                                     const std::string& logging_file);
 
     static void run_boa_backward_search(const AdjacencyMatrix& adjecency_matrix,
-        const size_t& target);
+        const size_t& target, const std::string& logging_file);
 
     static void run_forward_search(const AdjacencyMatrix& adjecency_matrix,
                                    const size_t& source, const size_t& target,

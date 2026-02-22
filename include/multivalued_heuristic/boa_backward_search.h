@@ -17,7 +17,7 @@ public:
     size_t num_expansion = 0;
     size_t num_generation = 0;
 
-    MultiValuedHeuristic operator()(const size_t& source);
+    MultiValuedHeuristic operator()(const size_t& source, const std::string& output_file);
     virtual ~BOABackwardSearch() = default;
 
     explicit BOABackwardSearch(const AdjacencyMatrix& adj_matrix);

@@ -14,7 +14,7 @@ static MultiValuedHeuristic make_mvh(std::vector<std::vector<float>> h_list) {
 TEST_CASE("PostProcess: empty h-list for a node passes through unchanged") {
     MultiValuedHeuristic mvh(1);  // node 0 has no h-values
     PostProcess pp;
-    auto result = pp(mvh, /*target=*/0, {0.0, 0.0});
+    auto result = pp(mvh, {0.0, 0.0}, "/tmp/test_pp.txt");
     CHECK(result[0].empty());
 }
 
@@ -22,7 +22,7 @@ TEST_CASE("PostProcess: single h-value returned as-is (no staircase)") {
     // With only one point there is no staircase to build.
     auto mvh = make_mvh({{1.0f, 4.0f}});
     PostProcess pp;
-    auto result = pp(mvh, /*target=*/0, {0.0, 0.0});
+    auto result = pp(mvh, {0.0, 0.0}, "/tmp/test_pp.txt");
     REQUIRE(result[0].size() == 1);
     CHECK(result[0][0][0] == doctest::Approx(1.0f));
     CHECK(result[0][0][1] == doctest::Approx(4.0f));
@@ -36,7 +36,7 @@ TEST_CASE("PostProcess: two Pareto points produce one staircase edge") {
     // stair = [{1, 3}]  (out[0][0], out[1][1])
     auto mvh = make_mvh({{1.0f, 4.0f}, {2.0f, 3.0f}});
     PostProcess pp;
-    auto result = pp(mvh, /*target=*/0, {0.0, 0.0});
+    auto result = pp(mvh, {0.0, 0.0}, "/tmp/test_pp.txt");
     REQUIRE(result[0].size() == 1);
     CHECK(result[0][0][0] == doctest::Approx(1.0f));
     CHECK(result[0][0][1] == doctest::Approx(3.0f));
@@ -48,7 +48,7 @@ TEST_CASE("PostProcess: three Pareto points produce two staircase edges") {
     // stair = [(1,3),(2,1)]
     auto mvh = make_mvh({{1.0f, 4.0f}, {2.0f, 3.0f}, {3.0f, 1.0f}});
     PostProcess pp;
-    auto result = pp(mvh, /*target=*/0, {0.0, 0.0});
+    auto result = pp(mvh, {0.0, 0.0}, "/tmp/test_pp.txt");
     REQUIRE(result[0].size() == 2);
     CHECK(result[0][0][0] == doctest::Approx(1.0f));
     CHECK(result[0][0][1] == doctest::Approx(3.0f));
@@ -64,7 +64,7 @@ TEST_CASE("PostProcess: eps=(0.5,0.5) merges two close points") {
     // After merge: out=[(1,3)] — size 1, no staircase.
     auto mvh = make_mvh({{1.0f, 4.0f}, {2.0f, 3.0f}});
     PostProcess pp;
-    auto result = pp(mvh, /*target=*/0, {0.5, 0.5});
+    auto result = pp(mvh, {0.5, 0.5}, "/tmp/test_pp.txt");
     REQUIRE(result[0].size() == 1);
     CHECK(result[0][0][0] == doctest::Approx(1.0f));
     CHECK(result[0][0][1] == doctest::Approx(3.0f));  // last[1] updated to cur[1]
@@ -76,7 +76,7 @@ TEST_CASE("PostProcess: eps=(0.5,0.5) merges first two, keeps third") {
     // out=[(1,3),(3,1)]. stair=[(1,1)].
     auto mvh = make_mvh({{1.0f, 4.0f}, {2.0f, 3.0f}, {3.0f, 1.0f}});
     PostProcess pp;
-    auto result = pp(mvh, /*target=*/0, {0.5, 0.5});
+    auto result = pp(mvh, {0.5, 0.5}, "/tmp/test_pp.txt");
     REQUIRE(result[0].size() == 1);
     CHECK(result[0][0][0] == doctest::Approx(1.0f));
     CHECK(result[0][0][1] == doctest::Approx(1.0f));
@@ -89,7 +89,7 @@ TEST_CASE("PostProcess: eps=(1,1) merges all three points") {
     // out=[(1,3),(3,1)]. stair=[(1,1)].
     auto mvh = make_mvh({{1.0f, 4.0f}, {2.0f, 3.0f}, {3.0f, 1.0f}});
     PostProcess pp;
-    auto result = pp(mvh, /*target=*/0, {1.0, 1.0});
+    auto result = pp(mvh, {1.0, 1.0}, "/tmp/test_pp.txt");
     REQUIRE(result[0].size() == 1);
     CHECK(result[0][0][0] == doctest::Approx(1.0f));
     CHECK(result[0][0][1] == doctest::Approx(1.0f));
@@ -104,7 +104,7 @@ TEST_CASE("PostProcess: each node processed independently") {
     mvh[0] = {{1.0f, 4.0f}, {2.0f, 3.0f}};
     mvh[1] = {{2.0f, 5.0f}, {4.0f, 2.0f}};
     PostProcess pp;
-    auto result = pp(mvh, /*target=*/0, {0.0, 0.0});
+    auto result = pp(mvh, {0.0, 0.0}, "/tmp/test_pp.txt");
 
     REQUIRE(result[0].size() == 1);
     CHECK(result[0][0][0] == doctest::Approx(1.0f));

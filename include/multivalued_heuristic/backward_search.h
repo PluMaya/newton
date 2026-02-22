@@ -35,7 +35,8 @@ public:
 
     MultiValuedHeuristic operator()(const size_t& source, const size_t& target,
                                     const Heuristic& heuristic_to_target,
-                                    const Heuristic& heuristic_to_source);
+                                    const Heuristic& heuristic_to_source,
+                                    const std::string& output_file);
     virtual ~BackwardSearch() = default;
 
     virtual void insert(ApexPathPairPtr& ap, MapQueue& queue);

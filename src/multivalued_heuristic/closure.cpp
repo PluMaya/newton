@@ -7,9 +7,6 @@
 #include <array>
 #include <fstream>
 #include <iostream>
-#include <sstream>
-
-#include <boost/algorithm/string.hpp>
 
 
 // Plain value struct — no heap allocation per node, no atomic refcounting.
@@ -27,8 +24,8 @@ struct CompareClosureNode {
 
 Closure::Closure(const AdjacencyMatrix& adj_matrix) : adj_matrix(adj_matrix) {}
 
-MultiValuedHeuristic Closure::operator()(const MultiValuedHeuristic& heuristic, size_t target,
-    float e1, float e2) {
+MultiValuedHeuristic Closure::operator()(const MultiValuedHeuristic& heuristic,
+    const std::string& output_file) {
     start_time = std::clock();
     MultiValuedHeuristic mvh_results(adj_matrix.size() + 1);
     min_g2.assign(adj_matrix.size() + 1, static_cast<float>(MAX_COST));
@@ -83,16 +80,7 @@ MultiValuedHeuristic Closure::operator()(const MultiValuedHeuristic& heuristic, 
         }
     }
 
-    std::string e1string = std::to_string(e1);
-    std::string e2string = std::to_string(e2);
-    std::vector<std::string> dceomp_temp;
-    e1string = split(dceomp_temp, e1string, boost::is_any_of("."))[1].substr(0, 3);
-    e2string = split(dceomp_temp, e2string, boost::is_any_of("."))[1].substr(0, 3);
-
-    std::stringstream ss;
-    ss << target << "_" << e1string << "_" << e2string << "_closure_mvh.txt";
-
-    std::ofstream PlotOutput(ss.str());
+    std::ofstream PlotOutput(output_file);
 
     for (size_t i = 0; i < adj_matrix.size() + 1; i++) {
         for (const auto& solution : mvh_results[i]) {
@@ -100,7 +88,7 @@ MultiValuedHeuristic Closure::operator()(const MultiValuedHeuristic& heuristic, 
         }
     }
 
-    std::cout << "finished writing results to file " << ss.str() << std::endl;
+    std::cout << "finished writing results to file " << output_file << std::endl;
 
     PlotOutput.close();
 

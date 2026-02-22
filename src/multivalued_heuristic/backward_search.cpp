@@ -4,10 +4,7 @@
 
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <multivalued_heuristic/backward_search.h>
-
-#include <boost/algorithm/string.hpp>
 
 #include <utility>
 
@@ -108,7 +105,8 @@ BackwardSearch::make_list_of_values(const ApexSolutionSet& apex_solution_set,
 MultiValuedHeuristic
 BackwardSearch::operator()(const size_t& source, const size_t& target,
                            const Heuristic& heuristic_to_target,
-                           const Heuristic& heuristic_to_source) {
+                           const Heuristic& heuristic_to_source,
+                           const std::string& output_file) {
     start_time = std::clock();
 
     BackwardSearchSolutionSet frontiers;
@@ -169,16 +167,7 @@ BackwardSearch::operator()(const size_t& source, const size_t& target,
 
     runtime = static_cast<float>(std::clock() - start_time);
 
-    std::string e1string = std::to_string(eps[0]);
-    std::string e2string = std::to_string(eps[1]);
-    std::vector<std::string> dceomp_temp;
-    e1string = split(dceomp_temp, e1string, boost::is_any_of("."))[1].substr(0, 3);
-    e2string = split(dceomp_temp, e2string, boost::is_any_of("."))[1].substr(0, 3);
-
-    std::stringstream ss;
-    ss << target << "_" << e1string << "_" << e2string << "_bs_mvh.txt";
-
-    std::ofstream PlotOutput(ss.str());
+    std::ofstream PlotOutput(output_file);
 
     for (int i = 0; i < adj_matrix.size() + 1; i++) {
         for (const auto& solution : mvh_results[i]) {
@@ -186,7 +175,7 @@ BackwardSearch::operator()(const size_t& source, const size_t& target,
         }
     }
 
-    std::cout << "finised writing results to file " << ss.str() << std::endl;
+    std::cout << "finished writing results to file " << output_file << std::endl;
 
     PlotOutput.close();
 

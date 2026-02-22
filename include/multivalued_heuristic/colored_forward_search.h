@@ -20,7 +20,8 @@ public:
 
   void operator()(const size_t &source, const size_t &target,
                   const MultiValuedHeuristic &heuristic,
-                  SolutionSet &solutions, const std::string& experiment_name);
+                  SolutionSet &solutions, const std::string& solutions_file,
+                  const std::string& stats_file);
 
   void operator()(const size_t &source, const size_t &target,
                   const Heuristic &heuristic, SolutionSet &solutions,

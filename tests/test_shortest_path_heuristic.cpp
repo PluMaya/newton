@@ -31,7 +31,7 @@ static AdjacencyMatrix make_inverse_graph() {
 TEST_CASE("compute_ideal_point_heuristic: h(target) = (0,0)") {
     auto inv = make_inverse_graph();
     auto h = ShortestPathHeuristicComputer::compute_ideal_point_heuristic(
-        /*source (= target node 2)=*/2, inv);
+        /*source (= target node 2)=*/2, inv, "/tmp/test_iph.txt");
 
     auto h2 = h(2);
     CHECK(h2[0] == doctest::Approx(0.0f));
@@ -40,7 +40,7 @@ TEST_CASE("compute_ideal_point_heuristic: h(target) = (0,0)") {
 
 TEST_CASE("compute_ideal_point_heuristic: h(intermediate node) correct") {
     auto inv = make_inverse_graph();
-    auto h = ShortestPathHeuristicComputer::compute_ideal_point_heuristic(2, inv);
+    auto h = ShortestPathHeuristicComputer::compute_ideal_point_heuristic(2, inv, "/tmp/test_iph.txt");
 
     // Node 1: shortest on obj0 = 2→1 = 1. Shortest on obj1 = 2→1 = 1.
     auto h1 = h(1);
@@ -50,7 +50,7 @@ TEST_CASE("compute_ideal_point_heuristic: h(intermediate node) correct") {
 
 TEST_CASE("compute_ideal_point_heuristic: h(source node) correct") {
     auto inv = make_inverse_graph();
-    auto h = ShortestPathHeuristicComputer::compute_ideal_point_heuristic(2, inv);
+    auto h = ShortestPathHeuristicComputer::compute_ideal_point_heuristic(2, inv, "/tmp/test_iph.txt");
 
     // Node 0: shortest on obj0 = 2→1→0 = 2. Shortest on obj1 = 2→0 = 1.
     auto h0 = h(0);
@@ -60,7 +60,7 @@ TEST_CASE("compute_ideal_point_heuristic: h(source node) correct") {
 
 TEST_CASE("compute_ideal_point_heuristic: returns vector of size num_of_objectives") {
     auto inv = make_inverse_graph();
-    auto h = ShortestPathHeuristicComputer::compute_ideal_point_heuristic(2, inv);
+    auto h = ShortestPathHeuristicComputer::compute_ideal_point_heuristic(2, inv, "/tmp/test_iph.txt");
 
     CHECK(h(0).size() == 2);
     CHECK(h(1).size() == 2);
@@ -74,7 +74,7 @@ TEST_CASE("compute_ideal_point_heuristic: heuristic is admissible on test graph"
     //   From 1: only 1→2 available = (1,1).
     //   From 2: at goal = (0,0).
     auto inv = make_inverse_graph();
-    auto h = ShortestPathHeuristicComputer::compute_ideal_point_heuristic(2, inv);
+    auto h = ShortestPathHeuristicComputer::compute_ideal_point_heuristic(2, inv, "/tmp/test_iph.txt");
 
     auto h0 = h(0);
     CHECK(h0[0] <= doctest::Approx(2.0f));  // obj0 true min = 2

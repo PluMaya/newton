@@ -24,11 +24,13 @@ void ExperimentUtils::run_boa_star(const AdjacencyMatrix& adjecency_matrix,
                                    const std::string& logging_file) {
     auto boa = BOAStar(adjecency_matrix);
     SolutionSet solutions;
-    boa(source, target, heuristic, solutions, 30, logging_file);
+    boa(source, target, heuristic, solutions, 30,
+        logging_file + "_" + std::to_string(source) + "_solutions.txt",
+        logging_file + "_" + std::to_string(source) + "_stats.txt");
     std::cout << "BOA"
         << "\t" << source << "\t" << target << "\t" << solutions.size()
         << "\t" << boa.num_expansion << "\t" << boa.num_generation << "\t"
-        << boa.runtime << std::endl;
+        << boa.runtime  / CLOCKS_PER_SEC << std::endl;
 }
 
 void ExperimentUtils::run_apex(const AdjacencyMatrix& adjecency_matrix,
@@ -51,7 +53,8 @@ void ExperimentUtils::run_backward_search(
     const std::string& logging_file) {
     auto backward_search = BackwardSearch(adjecency_matrix, eps);
     MultiValuedHeuristic mvh =
-        backward_search(source, target, source_to_target, target_to_source);
+        backward_search(source, target, source_to_target, target_to_source,
+                        logging_file + "_bs_mvh.txt");
     std::cout << "BS"
         << "\t" << source << "\t" << target << "\t" << mvh[target].size()
         << "\t" << backward_search.num_expansion << "\t"
@@ -60,9 +63,10 @@ void ExperimentUtils::run_backward_search(
 }
 
 void ExperimentUtils::run_boa_backward_search(const AdjacencyMatrix& adjecency_matrix,
-    const size_t& target) {
+    const size_t& target, const std::string& logging_file) {
     auto boa_backward_search = BOABackwardSearch(adjecency_matrix);
-    MultiValuedHeuristic mvh = boa_backward_search(target);
+    MultiValuedHeuristic mvh = boa_backward_search(target,
+                                                   logging_file + "_boa_mvh.txt");
     std::cout << "BOA-BS"
         << "\t" << target << "\t" << target << "\t" << mvh[target].size()
         << "\t" << boa_backward_search.num_expansion << "\t"
@@ -76,7 +80,9 @@ void ExperimentUtils::run_forward_search(
     const std::string& logging_file) {
     auto forward_search = ColoredForwardSearch(adjecency_matrix, eps);
     SolutionSet solutions;
-    forward_search(source, target, mvh, solutions, logging_file);
+    forward_search(source, target, mvh, solutions,
+                   logging_file + "_" + std::to_string(source) + "_solutions.txt",
+                   logging_file + "_" + std::to_string(source) + "_stats.txt");
     std::cout << "FS"
         << "\t" << source << "\t" << target << "\t" << solutions.size()
         << "\t" << forward_search.num_expansion << "\t"
@@ -106,7 +112,7 @@ void ExperimentUtils::single_run(AdjacencyMatrix& adjecency_matrix,
 
             Heuristic new_svh_heuristic =
                 ShortestPathHeuristicComputer::compute_ideal_point_heuristic(
-                    target, adjecency_matrix);
+                    target, adjecency_matrix, logging_file + "_iph.txt");
             heuristic_duration = static_cast<long>(std::clock() - heuristic_start_time);
             for (auto multi_source : multi_sources) {
                 run_apex(adjecency_matrix, multi_source, target, eps, new_svh_heuristic, heuristic_duration, logging_file);
@@ -117,9 +123,20 @@ void ExperimentUtils::single_run(AdjacencyMatrix& adjecency_matrix,
             }
         }
 
+    } else if (algorithm == "IPH") {
+        auto heuristic_start_time = std::clock();
+
+        Heuristic new_svh_heuristic =
+            ShortestPathHeuristicComputer::compute_ideal_point_heuristic(
+                target, adjecency_matrix, logging_file + "_iph.txt");
+        auto heuristic_duration = static_cast<long>(std::clock() - heuristic_start_time);
+        std::cout << "IPH"
+            << "\t" << target << "\t"
+            << "\t" << heuristic_duration / CLOCKS_PER_SEC
+            << std::endl;
     }
     else if ( algorithm == "BOA-MVH" ) {
-        run_boa_backward_search(adjecency_matrix, target);
+        run_boa_backward_search(adjecency_matrix, target, logging_file);
     }
     else if (algorithm == "OLDBS") {
         Heuristic blind_heuristic = [](size_t vertex) -> std::vector<float> {
@@ -138,12 +155,12 @@ void ExperimentUtils::single_run(AdjacencyMatrix& adjecency_matrix,
         }
     } else if (algorithm == "EPS-MVH") {
         auto post_process = PostProcess();
-        post_process(mvh, target, eps);
+        post_process(mvh, eps, logging_file + "_post_process_mvh.txt");
         std::cout << "Post-processing computed." << std::endl;
 
     } else if (algorithm == "Closure") {
         auto closure = Closure(adjecency_matrix);
-        MultiValuedHeuristic new_mvh = closure(mvh, target, eps[0], eps[1]);
+        MultiValuedHeuristic new_mvh = closure(mvh, logging_file + "_closure_mvh.txt");
         std::cout << "Closure computed." << std::endl;
     }
     else {
