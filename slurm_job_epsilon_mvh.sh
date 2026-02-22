@@ -4,7 +4,7 @@
 #SBATCH --error=logs/%x_%A_%a.err
 #SBATCH --mem=4G
 #SBATCH --nodelist=newton8,newton9,protagoras # Request run only on nodes newton3/newton4/galileo1
-#SBATCH --array=1 # TODO check this every time!
+#SBATCH --array=1-10 # TODO check this every time!
 #SBATCH --mail-user=wo@cs.technion.ac.il
 #SBATCH --mail-type=ALL           # Valid values are NONE, BEGIN, END, FAIL, REQUEUE, ALL
 #SBATCH --cpus-per-task=1         # number of cores (treats)
@@ -33,4 +33,5 @@ OUTDIR=output
   --e1 $E1 \
   --e2 $E2 \
   --mvh $MVH \
+  --logging_file "${GOAL}_${E1}_${E2}"
   > "${OUTDIR}/output_${MAP}_${GOAL}_${ALG}_${E1}_${E2}.txt" 2>&1
